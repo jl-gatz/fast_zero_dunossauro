@@ -8,7 +8,11 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "fastapi (>=0.115.11,<0.116.0)"
+    "fastapi (>=0.115.11,<0.116.0)",
+    "httpx (>=0.28.1,<0.29.0)",
+    "sqlalchemy (>=2.0.40,<3.0.0)",
+    "pydantic-settings (>=2.8.1,<3.0.0)",
+    "alembic (>=1.15.2,<2.0.0)"
 ]
 
 [tool.poetry]
@@ -36,6 +40,7 @@ addopts = '-p no:warnings'
 [tool.ruff]
 line-length = 79
 extend-exclude = ['migrations']
+exclude = [".bzr", ".direnv", ".eggs", ".git", ".git-rewrite", ".hg", ".history", ".mypy_cache", ".nox", ".pants.d", ".pytest_cache", ".pytype", ".ruff_cache", ".svn", ".tox", ".venv", "__pypackages__", "_build", "buck-out", "dist", "node_modules", "venv"]
 
 [tool.ruff.lint]
 preview = true

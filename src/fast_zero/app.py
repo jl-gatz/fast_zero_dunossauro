@@ -10,12 +10,12 @@ database = []
 
 
 @app.get('/', status_code=HTTPStatus.OK, response_model=Message)
-def read_root():
+def read_root() -> dict:
     return {'message': 'Olá, mundo!!'}
 
 
 @app.get('/pagina', status_code=HTTPStatus.OK, response_class=HTMLResponse)
-def read_root_html():
+def read_root_html() -> HTMLResponse:
     return """
     <html>
         <head>
@@ -30,19 +30,19 @@ def read_root_html():
 
 
 @app.post('/users/', status_code=HTTPStatus.CREATED, response_model=UserPublic)
-def create_user(user: UserSchema):
+def create_user(user: UserSchema) -> UserDB:
     user_with_id = UserDB(id=len(database) + 1, **user.model_dump())
     database.append(user_with_id)
     return user_with_id
 
 
 @app.get('/users/', response_model=UserList)
-def read_users():
+def read_users() -> dict:
     return {'users': database}
 
 
 @app.get('/users/{user_id}', response_model=UserPublic)
-def read_user_by_id(user_id: int):
+def read_user_by_id(user_id: int) -> dict:
     if user_id < 1 or user_id > len(database):
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User not found'
@@ -52,7 +52,7 @@ def read_user_by_id(user_id: int):
 
 
 @app.put('/users/{user_id}', response_model=UserPublic)
-def update_users(user_id: int, user: UserSchema):
+def update_users(user_id: int, user: UserSchema) -> UserDB:
     if user_id < 1 or user_id > len(database):
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User not found'
@@ -63,7 +63,7 @@ def update_users(user_id: int, user: UserSchema):
 
 
 @app.delete('/users/{user_id}', response_model=Message)
-def delete_user(user_id: int):
+def delete_user(user_id: int) -> dict:
     if user_id < 1 or user_id > len(database):
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='User not found'

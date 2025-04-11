@@ -6,7 +6,7 @@ class Message(BaseModel):
 
 
 class UserSchema(BaseModel):
-    user: str
+    username: str
     email: EmailStr
     password: str
 
@@ -17,7 +17,7 @@ class UserDB(UserSchema):
 
 class UserPublic(BaseModel):
     id: int
-    user: str
+    username: str
     email: EmailStr
 
 
