@@ -7,33 +7,33 @@ from fast_zero.models import User
 
 def test_create_user_db(session):
     user = User(
-        username='dunossauro',
-        email='duno@ssauro.com.br',
+        username='alice',
+        email='alice@ssauro.com.br',
         password='minha-senha-aqui',
     )
 
     session.add(user)
     session.commit()
     result = session.scalar(
-        select(User).where(User.email == 'duno@ssauro.com.br')
+        select(User).where(User.email == 'alice@ssauro.com.br')
     )
 
-    assert result.username == 'dunossauro'
+    assert result.username == 'alice'
 
 
 def test_create_user_db_with_time(session, mock_db_time):
     with mock_db_time(model=User) as time:
         new_user = User(
-            username='alice', password='secret', email='teste@test'
+            username='arisu', password='secret', email='teste@test'
         )
         session.add(new_user)
         session.commit()
 
-        user = session.scalar(select(User).where(User.username == 'alice'))
+        user = session.scalar(select(User).where(User.username == 'arisu'))
 
     assert asdict(user) == {
         'id': 1,
-        'username': 'alice',
+        'username': 'arisu',
         'password': 'secret',
         'email': 'teste@test',
         'created_at': time,
