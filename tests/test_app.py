@@ -113,7 +113,7 @@ def test_update_users(client: TestClient, user: User, token: Any):
     }
 
 
-def test_update_users_user_not_found(client: TestClient, token: Any):
+def test_update_users_user_wrong_user(client: TestClient, token: Any):
     response = client.put(
         'users/666',
         headers={'Authorization': f'Bearer {token}'},
@@ -134,7 +134,7 @@ def test_delete_user(client: TestClient, user: User, token: Any):
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_delete_user_user_not_found(client: TestClient, token: Any):
+def test_delete_user_user_wrong_user(client: TestClient, token: Any):
     response = client.delete(
         '/users/666',
         headers={'Authorization': f'Bearer {token}'},
@@ -154,3 +154,27 @@ def test_get_token(client: TestClient, user: User):
     assert response.status_code == HTTPStatus.OK
     assert token['token_type'] == 'Bearer'
     assert 'access_token' in token
+
+
+def test_get_token_with_wrong_user(client: TestClient, user: User):
+    response = client.post(
+        '/token',
+        data={'username': 'wrong-username', 'password': user.clean_password},
+    )
+
+    token = response.json()
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert token['detail'] == 'Incorrect username or password'
+
+
+def test_get_token_with_wrong_password(client: TestClient, user: User):
+    response = client.post(
+        '/token',
+        data={'username': user.username, 'password': 'incorrect-password'},
+    )
+
+    token = response.json()
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert token['detail'] == 'Incorrect username or password'
