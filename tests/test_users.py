@@ -100,9 +100,9 @@ def test_update_users(client: TestClient, user: User, token: str):
     }
 
 
-def test_update_users_user_wrong_user(client: TestClient, token: str):
+def test_update_users_wrong_user(client: TestClient, user: User, token: str):
     response = client.put(
-        'users/666',
+        f'users/{user.id + 1}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'test-user-quevedo',
@@ -121,9 +121,9 @@ def test_delete_user(client: TestClient, user: User, token: str):
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_delete_user_user_wrong_user(client: TestClient, token: str):
+def test_delete_user_wrong_user(client: TestClient, user: User, token: str):
     response = client.delete(
-        '/users/666',
+        f'/users/{user.id + 1}',
         headers={'Authorization': f'Bearer {token}'},
     )
     assert response.status_code == HTTPStatus.FORBIDDEN

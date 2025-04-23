@@ -17,13 +17,13 @@ from fast_zero.schemas import (
 from fast_zero.security import get_current_user, get_password_hash
 
 router = APIRouter(prefix='/users', tags=['users'])
-Session = Annotated[Session, Depends(get_session)]
-CurrentUser = Annotated[User, Depends(get_current_user)]
-FilterUser = Annotated[FilterPage, Query()]
+T_Session = Annotated[Session, Depends(get_session)]
+T_CurrentUser = Annotated[User, Depends(get_current_user)]
+T_FilterUser = Annotated[FilterPage, Query()]
 
 
 @router.post('/', status_code=HTTPStatus.CREATED)
-def create_user(user: UserSchema, session: Session) -> UserPublic:  # type: ignore
+def create_user(user: UserSchema, session: T_Session) -> UserPublic:
     db_user = session.scalar(
         select(User).where(
             (User.username == user.username) | (User.email == user.email)
@@ -57,9 +57,9 @@ def create_user(user: UserSchema, session: Session) -> UserPublic:  # type: igno
 
 @router.get('/', response_model=UserList)
 def read_users(
-    session: Session,  # type: ignore
-    filter_users: FilterUser,
-):
+    session: T_Session,
+    filter_users: T_FilterUser,
+) -> dict:
     users = session.scalars(
         select(User).limit(filter_users.limit).offset(filter_users.offset)
     )
@@ -68,7 +68,7 @@ def read_users(
 
 
 @router.get('/{user_id}')
-def read_user_by_id(user_id: int, session: Session) -> UserPublic:  # type: ignore
+def read_user_by_id(user_id: int, session: T_Session) -> UserPublic:  # type: ignore
     user_by_id = session.get(User, user_id)
 
     if not user_by_id:
@@ -83,8 +83,8 @@ def read_user_by_id(user_id: int, session: Session) -> UserPublic:  # type: igno
 def update_users(
     user_id: int,
     user: UserSchema,
-    session: Session,  # type: ignore
-    current_user: CurrentUser,
+    session: T_Session,
+    current_user: T_CurrentUser,
 ) -> UserPublic:
     if current_user.id != user_id:
         raise HTTPException(
@@ -105,8 +105,8 @@ def update_users(
 @router.delete('/{user_id}', response_model=Message)
 def delete_user(
     user_id: int,
-    session: Session,  # type: ignore
-    current_user: CurrentUser,
+    session: T_Session,
+    current_user: T_CurrentUser,
 ) -> dict:
     if current_user.id != user_id:
         raise HTTPException(

@@ -18,8 +18,8 @@ from fast_zero.settings import Settings
 settings = Settings()
 pwd_context = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
-Session = Annotated[Session, Depends(get_session)]
-Token = Annotated[str, Depends(oauth2_scheme)]
+T_Session = Annotated[Session, Depends(get_session)]
+T_Token = Annotated[str, Depends(oauth2_scheme)]
 
 
 def get_password_hash(password: str) -> str:
@@ -46,8 +46,8 @@ def create_access_token(data: dict) -> str:
 
 
 def get_current_user(
-    session: Session,  # type: ignore
-    token: Token,
+    session: T_Session,
+    token: T_Token,
 ) -> User:
     credentials_exception = HTTPException(
         status_code=HTTPStatus.UNAUTHORIZED,
