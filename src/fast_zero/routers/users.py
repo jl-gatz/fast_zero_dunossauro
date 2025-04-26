@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from fast_zero.database import get_session
 from fast_zero.models import User
@@ -17,14 +17,14 @@ from fast_zero.schemas import (
 from fast_zero.security import get_current_user, get_password_hash
 
 router = APIRouter(prefix='/users', tags=['users'])
-T_Session = Annotated[Session, Depends(get_session)]
+T_Session = Annotated[AsyncSession, Depends(get_session)]
 T_CurrentUser = Annotated[User, Depends(get_current_user)]
 T_FilterUser = Annotated[FilterPage, Query()]
 
 
 @router.post('/', status_code=HTTPStatus.CREATED)
-def create_user(user: UserSchema, session: T_Session) -> UserPublic:
-    db_user = session.scalar(
+async def create_user(user: UserSchema, session: T_Session) -> UserPublic:
+    db_user = await session.scalar(
         select(User).where(
             (User.username == user.username) | (User.email == user.email)
         )
@@ -49,27 +49,28 @@ def create_user(user: UserSchema, session: T_Session) -> UserPublic:
     )
 
     session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
+    await session.commit()
+    await session.refresh(db_user)
 
     return db_user
 
 
 @router.get('/', response_model=UserList)
-def read_users(
+async def read_users(
     session: T_Session,
     filter_users: T_FilterUser,
 ) -> dict:
-    users = session.scalars(
+    query = await session.scalars(
         select(User).limit(filter_users.limit).offset(filter_users.offset)
     )
+    users = query.all()  # Aguardar resultado do await, para o 'all()'
 
     return {'users': users}
 
 
 @router.get('/{user_id}')
-def read_user_by_id(user_id: int, session: T_Session) -> UserPublic:  # type: ignore
-    user_by_id = session.get(User, user_id)
+async def read_user_by_id(user_id: int, session: T_Session) -> UserPublic:  # type: ignore
+    user_by_id = await session.get(User, user_id)
 
     if not user_by_id:
         raise HTTPException(
@@ -80,7 +81,7 @@ def read_user_by_id(user_id: int, session: T_Session) -> UserPublic:  # type: ig
 
 
 @router.put('/{user_id}')
-def update_users(
+async def update_users(
     user_id: int,
     user: UserSchema,
     session: T_Session,
@@ -96,14 +97,14 @@ def update_users(
     current_user.password = get_password_hash(user.password)
 
     session.add(current_user)
-    session.commit()
-    session.refresh(current_user)
+    await session.commit()
+    await session.refresh(current_user)
 
     return current_user
 
 
 @router.delete('/{user_id}', response_model=Message)
-def delete_user(
+async def delete_user(
     user_id: int,
     session: T_Session,
     current_user: T_CurrentUser,
@@ -113,7 +114,7 @@ def delete_user(
             status_code=HTTPStatus.FORBIDDEN, detail='Not enough permission'
         )
 
-    session.delete(current_user)
-    session.commit()
+    await session.delete(current_user)
+    await session.commit()
 
     return {'message': 'User deleted'}

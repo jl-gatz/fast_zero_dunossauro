@@ -1,12 +1,14 @@
 from http import HTTPStatus
 
+import pytest
 from fastapi.testclient import TestClient
 
 from fast_zero.models import User
 from fast_zero.schemas import UserPublic
 
 
-def test_create_user(client: TestClient):
+@pytest.mark.asyncio
+async def test_create_user(client: TestClient):
     response = client.post(
         '/users/',
         json={
@@ -25,7 +27,8 @@ def test_create_user(client: TestClient):
     }
 
 
-def test_create_user_with_existing_username_error_400(
+@pytest.mark.asyncio
+async def test_create_user_with_existing_username_error_400(
     client: TestClient, user: User
 ):
     response = client.post(
@@ -41,7 +44,8 @@ def test_create_user_with_existing_username_error_400(
     assert response.json() == {'detail': 'Username already exists'}
 
 
-def test_create_user_with_existing_email_error_400(
+@pytest.mark.asyncio
+async def test_create_user_with_existing_email_error_400(
     client: TestClient, user: User
 ):
     response = client.post(
@@ -57,33 +61,38 @@ def test_create_user_with_existing_email_error_400(
     assert response.json() == {'detail': 'Email already exists'}
 
 
-def test_read_users_void(client: TestClient):
+@pytest.mark.asyncio
+async def test_read_users_void(client: TestClient):
     response = client.get('/users/')
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'users': []}
 
 
-def test_read_users_with_user(client: TestClient, user: User):
+@pytest.mark.asyncio
+async def test_read_users_with_user(client: TestClient, user: User):
     user_schema = UserPublic.model_validate(user).model_dump()
     response = client.get('/users/')
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'users': [user_schema]}
 
 
-def test_read_user_by_id(client: TestClient, user: User):
+@pytest.mark.asyncio
+async def test_read_user_by_id(client: TestClient, user: User):
     user_schema = UserPublic.model_validate(user).model_dump()
     response = client.get('/users/1')
     assert response.status_code == HTTPStatus.OK
     assert response.json() == user_schema
 
 
-def test_read_user_by_id_user_not_found(client: TestClient):
+@pytest.mark.asyncio
+async def test_read_user_by_id_user_not_found(client: TestClient):
     response = client.get('/users/666')
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'User not found'}
 
 
-def test_update_users(client: TestClient, user: User, token: str):
+@pytest.mark.asyncio
+async def test_update_users(client: TestClient, user: User, token: str):
     response = client.put(
         f'users/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
@@ -100,7 +109,10 @@ def test_update_users(client: TestClient, user: User, token: str):
     }
 
 
-def test_update_users_wrong_user(client: TestClient, user: User, token: str):
+@pytest.mark.asyncio
+async def test_update_users_wrong_user(
+    client: TestClient, user: User, token: str
+):
     response = client.put(
         f'users/{user.id + 1}',
         headers={'Authorization': f'Bearer {token}'},
@@ -114,14 +126,18 @@ def test_update_users_wrong_user(client: TestClient, user: User, token: str):
     assert response.json() == {'detail': 'Not enough permission'}
 
 
-def test_delete_user(client: TestClient, user: User, token: str):
+@pytest.mark.asyncio
+async def test_delete_user(client: TestClient, user: User, token: str):
     response = client.delete(
         f'/users/{user.id}', headers={'Authorization': f'Bearer {token}'}
     )
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_delete_user_wrong_user(client: TestClient, user: User, token: str):
+@pytest.mark.asyncio
+async def test_delete_user_wrong_user(
+    client: TestClient, user: User, token: str
+):
     response = client.delete(
         f'/users/{user.id + 1}',
         headers={'Authorization': f'Bearer {token}'},
