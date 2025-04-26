@@ -1,11 +1,13 @@
 from http import HTTPStatus
 
+import pytest
 from fastapi.testclient import TestClient
 
 from fast_zero.models import User
 
 
-def test_get_token(client: TestClient, user: User):
+@pytest.mark.asyncio
+async def test_get_token(client: TestClient, user: User):
     response = client.post(
         '/auth/token',
         data={'username': user.username, 'password': user.clean_password},
@@ -18,7 +20,8 @@ def test_get_token(client: TestClient, user: User):
     assert 'access_token' in token
 
 
-def test_get_token_with_wrong_user(client: TestClient, user: User):
+@pytest.mark.asyncio
+async def test_get_token_with_wrong_user(client: TestClient, user: User):
     response = client.post(
         '/auth/token',
         data={'username': 'wrong-username', 'password': user.clean_password},
@@ -30,7 +33,8 @@ def test_get_token_with_wrong_user(client: TestClient, user: User):
     assert token['detail'] == 'Incorrect username or password'
 
 
-def test_get_token_with_wrong_password(client: TestClient, user: User):
+@pytest.mark.asyncio
+async def test_get_token_with_wrong_password(client: TestClient, user: User):
     response = client.post(
         '/auth/token',
         data={'username': user.username, 'password': 'incorrect-password'},

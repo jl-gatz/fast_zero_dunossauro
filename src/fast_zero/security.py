@@ -9,7 +9,7 @@ from jwt import decode, encode
 from jwt.exceptions import PyJWTError
 from pwdlib import PasswordHash
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from fast_zero.database import get_session
 from fast_zero.models import User
@@ -18,7 +18,7 @@ from fast_zero.settings import Settings
 settings = Settings()
 pwd_context = PasswordHash.recommended()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
-T_Session = Annotated[Session, Depends(get_session)]
+T_Session = Annotated[AsyncSession, Depends(get_session)]
 T_Token = Annotated[str, Depends(oauth2_scheme)]
 
 
@@ -45,7 +45,7 @@ def create_access_token(data: dict) -> str:
     return encoded_JWT
 
 
-def get_current_user(
+async def get_current_user(
     session: T_Session,
     token: T_Token,
 ) -> User:
@@ -67,7 +67,7 @@ def get_current_user(
     except PyJWTError:
         raise credentials_exception
 
-    user = session.scalar(select(User).where(User.username == username))
+    user = await session.scalar(select(User).where(User.username == username))
 
     if not user:
         raise credentials_exception
